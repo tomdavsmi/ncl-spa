@@ -1,3 +1,6 @@
+import pandas as pd
+import numpy as np
+
 def findWorst(justAdded, ref_prefList, ref_studentList):
     idx = 0
     maxIdx = -1
@@ -23,12 +26,14 @@ def findWorst(justAdded, ref_prefList, ref_studentList):
 
     return worst
 
+
 def firstidx(list,element):
     try:
         idx = list.index(element)
     except:
         idx = -1
     return idx
+
 
 def findFreeProjects(projAssignments, projCaps, lectAssignments, lectCaps, lectProjs):
     """
@@ -47,3 +52,30 @@ def findFreeProjects(projAssignments, projCaps, lectAssignments, lectCaps, lectP
                     freeProjs.append(project)
 
     return freeProjs
+
+
+def check_prefs(studPrefs):
+    for key, value in studPrefs.items():
+        if len(value) != len(list(dict.fromkeys(value))):
+            value = list(dict.fromkeys(value))
+
+
+def statgen(studPrefs,studAssignments, studTopicPrefs):
+    rankings = []
+    for key, value in studAssignments.items():
+        ranking = firstidx(studPrefs[key], value) + 1
+        if ranking == 0:
+            ranking = firstidx(studTopicPrefs[key],value[0])+8
+            if ranking == -1:
+                ranking = 11
+        rankings.append(ranking)
+    col1 = []
+    col2 = []
+    for x in range(1, 12):
+        col1.append(rankings.count(x))
+        col2.append(round((rankings.count(x)/len(studAssignments.keys()))*100,2))
+    df = pd.DataFrame({"Ranks":[1,2,3,4,5,6,7,8,9,10,11], "Count":col1, "%":col2})
+    df['Cum %'] = df['%'].cumsum()
+    array = df.to_numpy()
+    np.delete(array,0,1)
+    return(array)
