@@ -1,13 +1,5 @@
-### Welcome to the main running file for the student project assignment algorithm
-import input_output as inout
-import sys
-import allocate
-import copy
-import random
-import library
-from datetime import datetime
-# Student allocation algorithm
-# Richard D. Morey, 18 March 2013
+# Implementation of Student Allocation Algorithm into a wider Python-based solution
+# Thomas David Smith, 17th Sept. 2019
 
 # Implementation of algorithm of:
 # Abraham, D.J., Irving, R.W. and Manlove, D.M. (2007)
@@ -15,29 +7,37 @@ from datetime import datetime
 # Journal of Discrete Algorithms, 5  (1).   pp. 73-90.
 # http://dx.doi.org/10.1016/j.jda.2006.03.006
 
-# Ported from Perl to Python by Thomas D. Smith (Newcastle
-# University).
 
+# Please see documentation for more information about input & output
+# formats, as well as constraints and possible usage scenarios
+
+# Ported from a Perl algorithm by Richard D. Morey to Python
+import input_output as inout
+import sys
+import allocate
+import copy
+import random
+import library
 ############################################################
 #                    CONFIGURATION                         #
 ############################################################
 # Here you can fine-tune the run with different settings
 
 # File names for the file containing student preference data, and for the master list of projects
-students_filename = "Data/SPA_Testv2.txt"
-project_filename = "Data/CHY3011 projects 19-20.xlsx"
+students_filename = "Data/SPA_Testv2.xlsx"
+project_filename = "Data/CHY3011 lists of projects 19-20.xlsx"
 
-#File names for the output excel sheet
+# File names for the output excel sheet
 out_filename = "out.xlsx"
 
-#Logging setting: to file or to terminal?
+# Logging setting: to file or to terminal?
 updates = True
 logging = "terminal"
 
 # Shuffle order of unassigned student list?
 randomise = True
 topicallocate = True
-randomallocate = False
+randomallocate = True
 
 # Iteration limit (usually not important but can be useful for debugging) set as -1 for no limit
 iterationLimit = -1
@@ -49,7 +49,7 @@ iterationLimit = -1
 students = inout.importStudents(students_filename)
 proj_lects = inout.importProjs_Lects(project_filename)
 
-#Student Oriented Data
+# Student Oriented Data
 med_studPrefs = students["Med Prefs"]
 medinit_unassignedStudents = students["Med-Unassigned"]
 nonmed_studPrefs = students["Non-Med Prefs"]
@@ -62,12 +62,12 @@ copy_med_studPrefs = copy.deepcopy(med_studPrefs)
 copy_nonmed_studPrefs = copy.deepcopy(nonmed_studPrefs)
 copy_studPrefs ={**copy_med_studPrefs, **copy_nonmed_studPrefs}
 
-#Project Oriented Data
+# Project Oriented Data
 projCaps = proj_lects["Project Capacities"]
 projLects = proj_lects["Project Lecturers"]
 projects = proj_lects["Projects"]
 
-#Lecturer Oriented Data
+# Lecturer Oriented Data
 lecturers = proj_lects["Lecturers"]
 lectPrefs = proj_lects["Lecturer Preferences"]
 lectPrefs_copy = copy.deepcopy(lectPrefs)
@@ -95,6 +95,15 @@ for k, v in lecturercaps.items():
 	if 0 >= int(v):
 		sys.exit("Error! Project " +k+" has zero or negative capacity")
 
+#Make sure there is enough capacity between all the lecturers to accomodate all the students
+print(lecturercaps)
+exit(69)
+sumcaps = 0
+for key, value in lecturercaps.items():
+	sumcaps += value
+
+if int(sumcaps) < (len(medinit_unassignedStudents) + len(nonmedinit_unassignedStudents)):
+	sys.exit("Not enough capacity between all lecturers: only "+str(sumcaps)+" lecturer slots available for "+str((len(medinit_unassignedStudents) + len(nonmedinit_unassignedStudents)))+" students. Check input files.")
 # Run the main allocation function
 # MedChem
 if randomise:
@@ -146,9 +155,12 @@ if len(unassignedStudents) > 0 and topicallocate:
 	studAssignments = finaldist_topic["Student Assignments"]
 	lectAssignments = finaldist_topic["Lecturer Assignments"]
 	projAssignments = finaldist_topic["Project Assignments"]
+
+randomlyAllocatedStudents = []
 if len(unassignedStudents) > 0 and randomallocate:
 	if randomise:
 		random.shuffle(unassignedStudents)
+	randomlyAllocatedStudents = copy.deepcopy(unassignedStudents)
 	rand_dist = allocate.random_distribute(unassignedStudents,studAssignments,projAssignments,projCaps,lectAssignments,lecturercaps,lectProjs, projLects, updates)
 	unassignedStudents = rand_dist["Unassigned Students"]
 	studAssignments = rand_dist["Student Assignments"]
@@ -176,7 +188,7 @@ for key in list(lectAssignments.keys()):
 
 stats = library.statgen(copy_studPrefs, studAssignments, comb_TopicPrefs)
 # Finally export all the values into a single output spreadsheet
-inout.export_all(out_filename,studAssignments,copy_studPrefs,projLects,lectAssignments,unassignedStudents,undercapacityLects,unassignedProjects_Caps,stats)
+inout.export_all(out_filename,studAssignments,copy_studPrefs,projLects,lectAssignments,unassignedStudents,undercapacityLects,unassignedProjects_Caps,stats, randomlyAllocatedStudents)
 
 if len(unassignedStudents) == 0:
 	print("All students have been allocated a project, the program will now terminate.\n May the force be with you.")

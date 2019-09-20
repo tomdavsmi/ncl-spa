@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+import re
 def findWorst(justAdded, ref_prefList, ref_studentList):
     idx = 0
     maxIdx = -1
@@ -74,8 +74,25 @@ def statgen(studPrefs,studAssignments, studTopicPrefs):
     for x in range(1, 12):
         col1.append(rankings.count(x))
         col2.append(round((rankings.count(x)/len(studAssignments.keys()))*100,2))
-    df = pd.DataFrame({"Ranks":[1,2,3,4,5,6,7,8,9,10,11], "Count":col1, "%":col2})
+    df = pd.DataFrame({"Ranks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "Count": col1, "%": col2})
     df['Cum %'] = df['%'].cumsum()
     array = df.to_numpy()
-    np.delete(array,0,1)
+    np.delete(array, 0, 1)
+
     return(array)
+
+def atof(text):
+    try:
+        retval = float(text)
+    except ValueError:
+        retval = text
+    return retval
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    float regex comes from https://stackoverflow.com/a/12643073/190597
+    '''
+    return [ atof(c) for c in re.split(r'[+-]?([0-9]+(?:[.][0-9]*)?|[.][0-9]+)', text) ]

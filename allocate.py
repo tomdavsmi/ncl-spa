@@ -207,7 +207,7 @@ def random_distribute(unassignedStudents,studAssignments,projAssignments,projCap
 	elif updates == True and len(freeprojects) < len(unassignedStudents):
 		diff = len(unassignedStudents) - len(freeprojects)
 		print(
-			str(len(freeprojects)) + " projects are available. " + diff + " students will not be assigned to projects\n")
+			str(len(freeprojects)) + " projects are available. " + str(diff) + " students will not be assigned to projects\n")
 
 	for student in unassignedStudentsCopy:
 		if len(freeprojects) > 0:
